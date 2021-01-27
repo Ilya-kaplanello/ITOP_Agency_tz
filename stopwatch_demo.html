@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stopwatch</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+</head>
+<body>
+
+<div ng-app="myApp" ng-controller="myCtrl">
+<p>{{timer | hhmmss}}</p>
+<div ng-switch = "show">
+<button ng-switch-when = "start" ng-click = "startTimer()">Start/Stop</button>
+<button ng-switch-when = "stop" ng-click = "stopTimer()">Start/Stop</button>
+<button ng-switch-when = "wait" ng-click = "startAfterWait()">Start/Stop</button>
+<button ng-dblclick = "waitTimer()">Wait</button>
+<button ng-click = "resetTimer()">Reset</button>
+<p>Last time: {{lastTime | hhmmss}}</p>
+</div>
+
+<script>
+var app = angular.module('myApp', []);
+
+app.controller('myCtrl', function($scope, $timeout){
+  $scope.lastTime = 0;
+  $scope.timer = 0;
+  $scope.show = "start";
+
+  $scope.startTimer = function() {
+    $scope.lastTime = $scope.timer;
+    $scope.timer = 0;
+    if($scope.myTimeout){
+      $timeout.cancel($scope.myTimeout);
+    }
+    $scope.onTimeout = function(){
+      $scope.timer += 1;
+      $scope.myTimeout = $timeout($scope.onTimeout,1000);
+    }
+    $scope.myTimeout = $timeout($scope.onTimeout,1000);
+    $scope.show = "stop";
+  };
+
+  $scope.waitTimer = function() {
+    if($scope.myTimeout){
+      $timeout.cancel($scope.myTimeout);
+      $scope.show = "wait";
+    }
+  }
+
+  $scope.startAfterWait = function() {
+    $scope.onTimeout = function(){
+      $scope.timer += 1;
+      $scope.myTimeout = $timeout($scope.onTimeout,1000);
+    }
+    $scope.myTimeout = $timeout($scope.onTimeout,1000);
+    $scope.show = "stop";
+  };
+
+  $scope.resetTimer = function() {
+    $scope.lastTime = $scope.timer;
+    $scope.timer = 0;
+    startTimer();
+  };
+
+  $scope.stopTimer = function() {
+    $scope.lastTime = $scope.timer;
+    $scope.timer = 0;
+    if($scope.myTimeout){
+      $timeout.cancel($scope.myTimeout);
+      $scope.show = "start";
+    }
+  };
+
+});
+
+app.filter('hhmmss', function () {
+  return function (time) {
+    var sec_num = parseInt(time, 10);
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    var time    = hours+':'+minutes+':'+seconds;
+    return time;
+  };
+});
+</script>
+
+</body>
+</html>
